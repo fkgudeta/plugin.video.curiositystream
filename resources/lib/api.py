@@ -53,16 +53,12 @@ class API(object):
 
     @cached()
     def series(self, id):
-        params = {
-            
-        }
-
-        return self._session.get('/v2/series/{}'.format(id), params=params).json()['data']
+        return self._session.get('/v2/series/{}'.format(id)).json()['data']
 
     @cached()
-    def collection(self, id):
+    def collection(self, id, flattened=False):
         params = {
-            'flattened': False,
+            'flattened': flattened,
         }
 
         return self._session.get('/v2/collections/{}'.format(id), params=params).json()['data']
@@ -79,6 +75,17 @@ class API(object):
         return self._session.get('/v2/collections', params=params).json()
 
     @cached()
+    def filter_media(self, filterby, term, collections=True, page=1):
+        params = {
+            'filterBy': filterby,
+            'term': term,
+            'collections': collections,
+            'limit': 20,
+            'page': page,
+        }
+
+        return self._session.get('/v1/media', params=params).json()
+
     def media(self, id):
         # params = {
         #    'showEncodings': 'Android', #limits to 1080p
@@ -86,18 +93,6 @@ class API(object):
         # }
 
         return self._session.get('/v1/media/{}'.format(id)).json()['data']
-
-    @cached()
-    def medias(self, filterby, term, collections=1, page=1):
-        params = {
-            'filterBy': filterby,
-            'term': term,
-            'collections': bool(collections),
-            'limit': 20,
-            'page': page,
-        }
-
-        return self._session.get('/v1/media', params=params).json()
 
     def logout(self):
         userdata.delete('token')

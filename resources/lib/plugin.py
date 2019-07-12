@@ -44,12 +44,10 @@ def _process_media(row):
     is_published   = row.get('is_published', True)
     is_collection  = row.get('is_collection', False)
     is_free        = row.get('is_free', False) 
-    is_series      = row.get('is_numbered_series', False)
+    #is_series      = row.get('is_numbered_series', False)
     
-    if is_series:
+    if is_collection:
         path = plugin.url_for(series, id=row['id'])
-    elif is_collection:
-        path = plugin.url_for(collection, id=row['id'])
     else:
         path = plugin.url_for(play, id=row['id'])
 
@@ -58,7 +56,7 @@ def _process_media(row):
         info  = {'plot': row['description'], 'duration': 120 if not is_free else row.get('duration', 0), 'year': row.get('year_produced')},
         art   = {'thumb': _image(row, 'image_medium')},
         path  = path,
-        playable = not is_collection and not is_series,
+        playable = not is_collection,
     )
 
 def _search_category(rows, id):
@@ -93,7 +91,7 @@ def categories(id=None, **kwargs):
         if subcategories:
             path = plugin.url_for(categories, id=row['id'])
         else:
-            path = plugin.url_for(medias, title=row['label'], filterby='category', term=row['name'])
+            path = plugin.url_for(media, title=row['label'], filterby='category', term=row['name'])
 
         folder.add_item(
             label = row['label'],
@@ -104,11 +102,10 @@ def categories(id=None, **kwargs):
     return folder
 
 @plugin.route()
-def medias(title, filterby, term, collections=1, page=1, **kwargs):
-    collections = int(collections)
+def media(title, filterby, term, page=1, **kwargs):
     page = int(page)
 
-    data = api.medias(filterby, term, collections=collections, page=page)
+    data = api.filter_media(filterby, term, page=page)
     total_pages = int(data['paginator']['total_pages'])
 
     folder = plugin.Folder(title=title)
@@ -120,7 +117,7 @@ def medias(title, filterby, term, collections=1, page=1, **kwargs):
     if total_pages > page:
         folder.add_item(
             label = _(_.NEXT_PAGE, next_page=page+1),
-            path  = plugin.url_for(medias, title=title, filterby=filterby, term=term, page=page+1),
+            path  = plugin.url_for(media, title=title, filterby=filterby, term=term, page=page+1),
         )
 
     return folder
@@ -187,7 +184,7 @@ def search(query=None, page=1, **kwargs):
             return
         userdata.set('search', query)
 
-    data = api.medias('keyword', query, collections=True, page=page)
+    data = api.filter_media('keyword', query, page=page)
     total_pages = int(data['paginator']['total_pages'])
 
     folder = plugin.Folder(title=_(_.SEARCH_FOR, query=query, page=page, total_pages=total_pages))
