@@ -40,9 +40,9 @@ class API(object):
     def categories(self):
         return self._session.get('/v1/categories').json()['data']
 
-    def media(self, filter, term, collections=True, page=1):
+    def media(self, filterby, term, collections=True, page=1):
         params = {
-            'filterBy': filter,
+            'filterBy': filterby,
             'term': term,
             'collections': collections,
             'limit': 20,

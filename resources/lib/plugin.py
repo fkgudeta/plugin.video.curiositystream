@@ -33,6 +33,12 @@ def index(**kwargs):
 
     return folder
 
+def _image(row, key):
+    if key in row and not row[key].lower().strip().endswith('missing.png'):
+        return row[key]
+
+    return None
+
 def _process_categories(rows):
     items = []
 
@@ -42,11 +48,11 @@ def _process_categories(rows):
         if subcategories:
             path = plugin.url_for(categories, id=row['id'])
         else:
-            path = plugin.url_for(media, title=row['label'], filter='category', term=row['name'])
+            path = plugin.url_for(media, title=row['label'], filterby='category', term=row['name'])
 
         item = plugin.Item(
             label = row['label'],
-            art   = {'thumb': row['image_url'], 'fanart': row['background_url']},
+            art   = {'thumb': _image(row, 'image_url'), 'fanart': _image(row, 'background_url')},
             path  = path,
         )
 
@@ -75,7 +81,7 @@ def _process_media(rows):
         item = plugin.Item(
             label = row['title'],
             info  = {'plot': row['description'], 'duration': row['duration']},
-            art   = {'thumb': row['image_medium']},
+            art   = {'thumb': _image(row, 'image_medium')},
             path  = plugin.url_for(play, media_id=row['id']),
             playable = True,
         )
@@ -103,19 +109,19 @@ def categories(id=None, **kwargs):
     return folder
 
 @plugin.route()
-def media(title, filter, term, page=1, **kwargs):
+def media(title, filterby, term, page=1, **kwargs):
     page = int(page)
 
     folder = plugin.Folder(title=title)
 
-    data = api.media(filter, term, page=page)
+    data = api.media(filterby, term, page=page)
     items = _process_media(data['data'])
     folder.add_items(items)
 
     if int(data['paginator']['total_pages']) > page:
         folder.add_item(
             label = 'Next Page', #TODO language me!
-            path  = plugin.url_for(media, title=title, filter=filter, term=term, page=page+1)
+            path  = plugin.url_for(media, title=title, filterby=filterby, term=term, page=page+1)
         )
 
     return folder
