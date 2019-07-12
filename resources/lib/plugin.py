@@ -45,7 +45,7 @@ def _process_media(row):
     is_collection  = row.get('is_collection', False)
     is_free        = row.get('is_free', False) 
     #is_series      = row.get('is_numbered_series', False)
-    
+
     if is_collection:
         path = plugin.url_for(series, id=row['id'])
     else:
@@ -53,7 +53,7 @@ def _process_media(row):
 
     return plugin.Item(
         label = row.get('title'),
-        info  = {'plot': row['description'], 'duration': 120 if not is_free else row.get('duration', 0), 'year': row.get('year_produced')},
+        info  = {'plot': row['description'], 'duration': row.get('duration', 0) if plugin.logged_in or is_free else 120, 'year': row.get('year_produced')},
         art   = {'thumb': _image(row, 'image_medium')},
         path  = path,
         playable = not is_collection,
