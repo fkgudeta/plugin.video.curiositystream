@@ -52,7 +52,7 @@ def _process_media(row):
         path = plugin.url_for(play, id=row['id'])
 
     return plugin.Item(
-        label = row['title'],
+        label = row.get('title'),
         info  = {'plot': row['description'], 'duration': 120 if not is_free else row.get('duration', 0), 'year': row.get('year_produced')},
         art   = {'thumb': _image(row, 'image_medium')},
         path  = path,
@@ -170,8 +170,43 @@ def collection(id, **kwargs):
     return folder
 
 @plugin.route()
-def featured(**kwargs):
+def featured(id=None, **kwargs):
     folder = plugin.Folder(title=_.FEATURED)
+
+    rows = api.sections(7)
+
+    if id:
+        for row in rows:
+            if str(row['id']) == str(id):
+                folder.title = row['label']
+                folder.fanart = _image(row, 'background_url')
+
+                for subrow in row.get('media', []):
+                    item = _process_media(subrow)
+                    folder.add_items([item])
+
+                break
+
+    else:
+        for row in rows:
+            if row['type'] == 'custom':
+                path = plugin.url_for(featured, id=row['id'])
+            elif row['type'] == 'playlist':
+                path = plugin.url_for(collection, id=row['model_id'])
+            else:
+                path = plugin.url_for(media, title=row['label'], filterby=row['type'], term=row['name'])
+
+            thumb = _image(row, 'image_url')
+            if not thumb and row.get('media', []):
+                thumb = _image(row['media'][0], 'image_medium')
+
+            folder.add_item(
+                label = row['label'],
+                info  = {'plot': row.get('description')},
+                art   = {'thumb': thumb},
+                path  = path,
+            )
+
     return folder
 
 @plugin.route()

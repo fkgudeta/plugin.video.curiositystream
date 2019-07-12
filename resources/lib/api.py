@@ -4,7 +4,7 @@ from matthuisman import userdata, settings
 from matthuisman.session import Session
 from matthuisman.exceptions import Error
 from matthuisman.log import log
-from matthuisman.mem_cache import cached
+from matthuisman import mem_cache
 
 from .constants import HEADERS, API_URL
 from .language import _
@@ -47,15 +47,30 @@ class API(object):
         userdata.set('token', data['message']['auth_token'])
         self._set_authentication()
 
-    @cached()
+    @mem_cache.cached()
     def categories(self):
         return self._session.get('/v1/categories').json()['data']
 
-    @cached()
+    @mem_cache.cached()
     def series(self, id):
         return self._session.get('/v2/series/{}'.format(id)).json()['data']
 
-    @cached()
+    @mem_cache.cached()
+    def featured(self):
+        return self._session.get('/v2/featured').json()
+
+    @mem_cache.cached()
+    def sections(self, id, page=1):
+        params = {
+            'cache': False,
+            'collections': True,
+            'media_limit': 36,
+            'page': page,
+        }
+
+        return self._session.get('/v1/sections/{}/mobile'.format(id)).json()['data']['groups']
+
+    @mem_cache.cached()
     def collection(self, id, flattened=False):
         params = {
             'flattened': flattened,
@@ -63,7 +78,7 @@ class API(object):
 
         return self._session.get('/v2/collections/{}'.format(id), params=params).json()['data']
 
-    @cached()
+    @mem_cache.cached()
     def collections(self, flattened=False, excludeMedia=True, page=1):
         params = {
             'flattened': flattened,
@@ -74,7 +89,6 @@ class API(object):
 
         return self._session.get('/v2/collections', params=params).json()
 
-    @cached()
     def filter_media(self, filterby, term, collections=True, page=1):
         params = {
             'filterBy': filterby,
@@ -96,4 +110,5 @@ class API(object):
 
     def logout(self):
         userdata.delete('token')
+        mem_cache.empty()
         self.new_session()
