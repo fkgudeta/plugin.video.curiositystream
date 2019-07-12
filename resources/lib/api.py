@@ -4,6 +4,7 @@ from matthuisman import userdata, settings
 from matthuisman.session import Session
 from matthuisman.exceptions import Error
 from matthuisman.log import log
+from matthuisman.mem_cache import cached
 
 from .constants import HEADERS, API_URL
 from .language import _
@@ -27,8 +28,8 @@ class API(object):
 
     def play(self, media_id):
         # params = {
-        #     'showEncodings': 'Android', #limits to 1080p
-        #     'encodingsNew': 'true', #breaks playback
+        #    'showEncodings': 'Android', #limits to 1080p
+        #    'encodingsNew': 'true', #breaks playback
         # }
 
         data = self._session.get('/v1/media/{}'.format(media_id)).json()
@@ -37,14 +38,15 @@ class API(object):
 
         return data['data']['encodings'][0]['master_playlist_url']
 
+    @cached(key='categories')
     def categories(self):
         return self._session.get('/v1/categories').json()['data']
 
-    def media(self, filterby, term, collections=True, page=1):
+    def media(self, filterby, term, collections=1, page=1):
         params = {
             'filterBy': filterby,
             'term': term,
-            'collections': collections,
+            'collections': bool(collections),
             'limit': 20,
             'page': page,
         }

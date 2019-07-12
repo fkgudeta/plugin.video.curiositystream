@@ -52,7 +52,7 @@ def _process_categories(rows):
 
         item = plugin.Item(
             label = row['label'],
-            art   = {'thumb': _image(row, 'image_url'), 'fanart': _image(row, 'background_url')},
+            art   = {'thumb': _image(row, 'image_url')},
             path  = path,
         )
 
@@ -78,17 +78,30 @@ def _process_media(rows):
     items = []
 
     for row in rows:
+        child_friendly = row.get('is_child_friendly', False) #TODO child friendly only settings?
+        is_published = row.get('is_published', True)
+        is_collection = row.get('is_collection', False)
+        
+        if is_collection:
+            path = plugin.url_for(collection, id=row['id'])
+        else:
+            path = plugin.url_for(play, media_id=row['id'])
+
         item = plugin.Item(
             label = row['title'],
-            info  = {'plot': row['description'], 'duration': row['duration']},
+            info  = {'plot': row['description'], 'duration': row['duration'], 'year': row.get('year_produced')},
             art   = {'thumb': _image(row, 'image_medium')},
-            path  = plugin.url_for(play, media_id=row['id']),
-            playable = True,
+            path  = path,
+            playable = not is_collection,
         )
 
         items.append(item)
 
     return items
+
+@plugin.route()
+def collection(id, **kwargs):
+    pass
 
 @plugin.route()
 def categories(id=None, **kwargs):
@@ -109,12 +122,13 @@ def categories(id=None, **kwargs):
     return folder
 
 @plugin.route()
-def media(title, filterby, term, page=1, **kwargs):
+def media(title, filterby, term, collections=1, page=1, **kwargs):
+    collections = int(collections)
     page = int(page)
 
     folder = plugin.Folder(title=title)
 
-    data = api.media(filterby, term, page=page)
+    data = api.media(filterby, term, collections=collections, page=page)
     items = _process_media(data['data'])
     folder.add_items(items)
 
