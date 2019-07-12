@@ -66,6 +66,10 @@ msgctxt "#30012"
 msgid "Could not find that category: {category_id}"
 msgstr ""
 
+msgctxt "#30013"
+msgid "Child Friendly Mode"
+msgstr ""
+
 ##COMMON##
 
 msgctxt "#32000"

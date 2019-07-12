@@ -13,5 +13,6 @@ class Language(BaseLanguage):
     HISTORY              = 30010
     NEXT_PAGE            = 30011
     CATEGORY_NOT_FOUND   = 30012
+    CHILD_FRIENDLY       = 30013
 
 _ = Language()

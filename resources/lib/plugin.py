@@ -1,9 +1,10 @@
-from matthuisman import plugin, gui, userdata, signals, inputstream
+from matthuisman import plugin, gui, userdata, signals, inputstream, settings
 from matthuisman.log import log
 from matthuisman.exceptions import PluginError
 
 from .api import API
 from .language import _
+from .constants import PREVIEW_LENGTH
 
 api = API()
 
@@ -40,11 +41,15 @@ def _image(row, key):
     return None
 
 def _process_media(row):
-    child_friendly = row.get('is_child_friendly', False) #TODO child friendly only settings?
+    if settings.getBool('child_friendly', False) and not row.get('is_child_friendly', False):
+        #maybe just block playback and add label, so pagination still correct
+        return None
+
     is_published   = row.get('is_published', True)
     is_collection  = row.get('is_collection', False)
     is_free        = row.get('is_free', False) 
-    #is_series      = row.get('is_numbered_series', False)
+    is_series      = row.get('is_numbered_series', False)
+    duration       = row.get('duration', 0) if plugin.logged_in or is_free else PREVIEW_LENGTH
 
     if is_collection:
         path = plugin.url_for(series, id=row['id'])
@@ -53,7 +58,7 @@ def _process_media(row):
 
     return plugin.Item(
         label = row.get('title'),
-        info  = {'plot': row['description'], 'duration': row.get('duration', 0) if plugin.logged_in or is_free else 120, 'year': row.get('year_produced')},
+        info  = {'plot': row['description'], 'duration': duration, 'year': row.get('year_produced')},
         art   = {'thumb': _image(row, 'image_medium')},
         path  = path,
         playable = not is_collection,
