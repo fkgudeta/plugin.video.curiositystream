@@ -7,7 +7,7 @@ from functools import wraps
 import xbmc, xbmcplugin
 
 from . import router, gui, settings, userdata, inputstream, signals
-from .constants import ROUTE_SETTINGS, ROUTE_RESET, ROUTE_SERVICE, ROUTE_CLEAR_CACHE, ROUTE_IA_SETTINGS, ROUTE_IA_INSTALL, ROUTE_IA_QUALITY, ADDON_ICON, ADDON_FANART, ADDON_ID, ADDON_NAME, ROUTE_AUTOPLAY_TAG, ADDON_PROFILE, ROUTE_LIVE_TAG
+from .constants import ROUTE_SETTINGS, ROUTE_RESET, ROUTE_SERVICE, ROUTE_CLEAR_CACHE, ROUTE_IA_SETTINGS, ROUTE_IA_INSTALL, ROUTE_IA_QUALITY, ADDON_ICON, ADDON_FANART, ADDON_ID, ADDON_NAME, ROUTE_AUTOPLAY_TAG, ADDON_PROFILE
 from .log import log
 from .language import _
 from .exceptions import PluginError
@@ -47,10 +47,7 @@ def route(url=None):
                 _autoplay(item, pattern)
             elif isinstance(item, Folder):
                 item.display()
-            elif isinstance(item, Item):
-                if item.inputstream and ROUTE_LIVE_TAG in kwargs:
-                    item.properties['inputstream.adaptive.manifest_update_parameter'] = 'full'
-                    
+            elif isinstance(item, Item):                    
                 item.play()
             else:
                 resolve()
