@@ -255,7 +255,6 @@ class Folder(object):
         if position == None:
             self.items.append(item)
         else:
-            print("INSERT")
             self.items.insert(int(position), item)
 
         return item

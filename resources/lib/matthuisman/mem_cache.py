@@ -1,7 +1,11 @@
-import pickle
 import sys
 from time import time
 from functools import wraps
+
+try:
+    import cPickle as pickle
+except:
+    import pickle
 
 import xbmcgui
 

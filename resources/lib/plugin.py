@@ -18,7 +18,7 @@ def index(**kwargs):
 
     folder.add_item(label=_.CATEGORIES, path=plugin.url_for(categories))
     folder.add_item(label=_.COLLECTIONS, path=plugin.url_for(collections))
-    folder.add_item(label=_.RECOMMENDED, path=plugin.url_for(recommended))
+    folder.add_item(label=_.FEATURED, path=plugin.url_for(featured))
     folder.add_item(label=_.SEARCH, path=plugin.url_for(search))
 
     if not api.logged_in:
@@ -39,69 +39,40 @@ def _image(row, key):
 
     return None
 
-def _process_categories(rows):
-    items = []
+def _process_media(row):
+    child_friendly = row.get('is_child_friendly', False) #TODO child friendly only settings?
+    is_published   = row.get('is_published', True)
+    is_collection  = row.get('is_collection', False)
+    is_free        = row.get('is_free', False) 
+    is_series      = row.get('is_numbered_series', False)
+    
+    if is_series:
+        path = plugin.url_for(series, id=row['id'])
+    elif is_collection:
+        path = plugin.url_for(collection, id=row['id'])
+    else:
+        path = plugin.url_for(play, id=row['id'])
 
+    return plugin.Item(
+        label = row['title'],
+        info  = {'plot': row['description'], 'duration': 120 if not is_free else row.get('duration', 0), 'year': row.get('year_produced')},
+        art   = {'thumb': _image(row, 'image_medium')},
+        path  = path,
+        playable = not is_collection and not is_series,
+    )
+
+def _search_category(rows, id):
     for row in rows:
-        subcategories = row.get('subcategories', [])
-
-        if subcategories:
-            path = plugin.url_for(categories, id=row['id'])
-        else:
-            path = plugin.url_for(media, title=row['label'], filterby='category', term=row['name'])
-
-        item = plugin.Item(
-            label = row['label'],
-            art   = {'thumb': _image(row, 'image_url')},
-            path  = path,
-        )
-
-        items.append(item)
-
-    return items
-
-def _get_category(rows, id):
-    def _search(rows):
-        for row in rows:
-            if str(row['id']) == str(id):
-                return row
-            else:
-                row = _search(row.get('subcategories', []))
-                if row:
-                    return row
-
-        return None
-
-    return _search(rows)
-
-def _process_media(rows):
-    items = []
-
-    for row in rows:
-        child_friendly = row.get('is_child_friendly', False) #TODO child friendly only settings?
-        is_published = row.get('is_published', True)
-        is_collection = row.get('is_collection', False)
+        if str(row['id']) == str(id):
+            return row
         
-        if is_collection:
-            path = plugin.url_for(collection, id=row['id'])
-        else:
-            path = plugin.url_for(play, media_id=row['id'])
+        subcats = row.get('subcategories', [])
+        if subcats:
+            row = _search_category(subcats, id)
+            if row:
+                return row
 
-        item = plugin.Item(
-            label = row['title'],
-            info  = {'plot': row['description'], 'duration': row['duration'], 'year': row.get('year_produced')},
-            art   = {'thumb': _image(row, 'image_medium')},
-            path  = path,
-            playable = not is_collection,
-        )
-
-        items.append(item)
-
-    return items
-
-@plugin.route()
-def collection(id, **kwargs):
-    pass
+    return None
 
 @plugin.route()
 def categories(id=None, **kwargs):
@@ -109,45 +80,97 @@ def categories(id=None, **kwargs):
 
     rows = api.categories()
     if id:
-        row = _get_category(rows, id)
+        row = _search_category(rows, id)
         if not row:
-            raise #TODO language error
+            raise PluginError(_(_.CATEGORY_NOT_FOUND, category_id=id))
 
         folder.title = row['label']
         rows = row.get('subcategories', [])
 
-    items = _process_categories(rows)
-    folder.add_items(items)
+    for row in rows:
+        subcategories = row.get('subcategories', [])
 
-    return folder
+        if subcategories:
+            path = plugin.url_for(categories, id=row['id'])
+        else:
+            path = plugin.url_for(medias, title=row['label'], filterby='category', term=row['name'])
 
-@plugin.route()
-def media(title, filterby, term, collections=1, page=1, **kwargs):
-    collections = int(collections)
-    page = int(page)
-
-    folder = plugin.Folder(title=title)
-
-    data = api.media(filterby, term, collections=collections, page=page)
-    items = _process_media(data['data'])
-    folder.add_items(items)
-
-    if int(data['paginator']['total_pages']) > page:
         folder.add_item(
-            label = 'Next Page', #TODO language me!
-            path  = plugin.url_for(media, title=title, filterby=filterby, term=term, page=page+1)
+            label = row['label'],
+            art   = {'thumb': _image(row, 'image_url')},
+            path  = path,
         )
 
     return folder
 
 @plugin.route()
-def collections(**kwargs):
-    folder = plugin.Folder(title=_.COLLECTIONS)
+def medias(title, filterby, term, collections=1, page=1, **kwargs):
+    collections = int(collections)
+    page = int(page)
+
+    folder = plugin.Folder(title=title)
+
+    data = api.medias(filterby, term, collections=collections, page=page)
+    for row in data['data']:
+        item = _process_media(row)
+        folder.add_items([item])
+
+    if int(data['paginator']['total_pages']) > page:
+        folder.add_item(
+            label = _(_.NEXT_PAGE, next_page=page+1),
+            path  = plugin.url_for(medias, title=title, filterby=filterby, term=term, page=page+1),
+        )
+
     return folder
 
 @plugin.route()
-def recommended(**kwargs):
-    folder = plugin.Folder(title=_.RECOMMENDED)
+def collections(page=1, **kwargs):
+    page = int(page)
+
+    folder = plugin.Folder(title=_.COLLECTIONS)
+
+    data = api.collections(page=page)
+    for row in data['data']:
+        folder.add_item(
+            label = row['title'],
+            info  = {'plot': row['description']},
+            art   = {'thumb': _image(row, 'image_url')},
+            path  = plugin.url_for(collection, id=row['id']),
+        )
+
+    if int(data['paginator']['total_pages']) > page:
+        folder.add_item(
+            label = _(_.NEXT_PAGE, next_page=page+1),
+            path  = plugin.url_for(collections, page=page+1),
+        )
+
+    return folder
+
+@plugin.route()
+def series(id, **kwargs):
+    data   = api.series(id)
+    folder = plugin.Folder(title=data['title'], fanart=_image(data, 'image_large'))
+
+    for row in data.get('media', []):
+        item = _process_media(row)
+        folder.add_items([item])
+
+    return folder
+
+@plugin.route()
+def collection(id, **kwargs):
+    data   = api.collection(id)
+    folder = plugin.Folder(title=data['title'], fanart=_image(data, 'background_url'))
+
+    for row in data.get('media', []):
+        item = _process_media(row)
+        folder.add_items([item])
+
+    return folder
+
+@plugin.route()
+def featured(**kwargs):
+    folder = plugin.Folder(title=_.FEATURED)
     return folder
 
 @plugin.route()
@@ -186,19 +209,19 @@ def login(**kwargs):
     gui.refresh()
 
 @plugin.route()
-def play(media_id, **kwargs):
-    url = api.play(media_id)
+def play(id, **kwargs):
+    data = api.media(id)
+    item = _process_media(data)
 
-    return plugin.Item(
-        path = url,
-        inputstream = inputstream.HLS(),
-    )
+    item.path = data['encodings'][0]['master_playlist_url']
+    item.inputstream = inputstream.HLS()
+
+    return item
 
 @plugin.route()
-@plugin.login_required()
 def logout(**kwargs):
     if not gui.yes_no(_.LOGOUT_YES_NO):
         return
 
     api.logout()
-    gui.refresh()\
+    gui.refresh()

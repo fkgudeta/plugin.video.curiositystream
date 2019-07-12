@@ -43,7 +43,7 @@ msgid "Collections"
 msgstr ""
 
 msgctxt "#30007"
-msgid "Recommended"
+msgid "Featured"
 msgstr ""
 
 msgctxt "#30008"
@@ -56,6 +56,14 @@ msgstr ""
 
 msgctxt "#30010"
 msgid "My History"
+msgstr ""
+
+msgctxt "#30011"
+msgid "Next Page ({next_page})"
+msgstr ""
+
+msgctxt "#30012"
+msgid "Could not find that category: {category_id}"
 msgstr ""
 
 ##COMMON##

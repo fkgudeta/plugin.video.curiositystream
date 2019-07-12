@@ -26,33 +26,6 @@ class API(object):
         self._session.headers.update({'X-Auth-Token': access_token})
         self.logged_in = True
 
-    def play(self, media_id):
-        # params = {
-        #    'showEncodings': 'Android', #limits to 1080p
-        #    'encodingsNew': 'true', #breaks playback
-        # }
-
-        data = self._session.get('/v1/media/{}'.format(media_id)).json()
-        if 'error' in data:
-            raise APIError(_(_.STREAM_ERRPR, msg=data['error']['message']))
-
-        return data['data']['encodings'][0]['master_playlist_url']
-
-    @cached(key='categories')
-    def categories(self):
-        return self._session.get('/v1/categories').json()['data']
-
-    def media(self, filterby, term, collections=1, page=1):
-        params = {
-            'filterBy': filterby,
-            'term': term,
-            'collections': bool(collections),
-            'limit': 20,
-            'page': page,
-        }
-
-        return self._session.get('/v1/media', params=params).json()
-
     def login(self, username, password):
         self.logout()
 
@@ -73,6 +46,58 @@ class API(object):
         
         userdata.set('token', data['message']['auth_token'])
         self._set_authentication()
+
+    @cached()
+    def categories(self):
+        return self._session.get('/v1/categories').json()['data']
+
+    @cached()
+    def series(self, id):
+        params = {
+            
+        }
+
+        return self._session.get('/v2/series/{}'.format(id), params=params).json()['data']
+
+    @cached()
+    def collection(self, id):
+        params = {
+            'flattened': False,
+        }
+
+        return self._session.get('/v2/collections/{}'.format(id), params=params).json()['data']
+
+    @cached()
+    def collections(self, flattened=False, excludeMedia=True, page=1):
+        params = {
+            'flattened': flattened,
+            'excludeMedia': excludeMedia,
+            'limit': 20,
+            'page': page,
+        }
+
+        return self._session.get('/v2/collections', params=params).json()
+
+    @cached()
+    def media(self, id):
+        # params = {
+        #    'showEncodings': 'Android', #limits to 1080p
+        #    'encodingsNew': 'true', #breaks playback
+        # }
+
+        return self._session.get('/v1/media/{}'.format(id)).json()['data']
+
+    @cached()
+    def medias(self, filterby, term, collections=1, page=1):
+        params = {
+            'filterBy': filterby,
+            'term': term,
+            'collections': bool(collections),
+            'limit': 20,
+            'page': page,
+        }
+
+        return self._session.get('/v1/media', params=params).json()
 
     def logout(self):
         userdata.delete('token')
