@@ -108,14 +108,16 @@ def medias(title, filterby, term, collections=1, page=1, **kwargs):
     collections = int(collections)
     page = int(page)
 
+    data = api.medias(filterby, term, collections=collections, page=page)
+    total_pages = int(data['paginator']['total_pages'])
+
     folder = plugin.Folder(title=title)
 
-    data = api.medias(filterby, term, collections=collections, page=page)
     for row in data['data']:
         item = _process_media(row)
         folder.add_items([item])
 
-    if int(data['paginator']['total_pages']) > page:
+    if total_pages > page:
         folder.add_item(
             label = _(_.NEXT_PAGE, next_page=page+1),
             path  = plugin.url_for(medias, title=title, filterby=filterby, term=term, page=page+1),
@@ -127,9 +129,11 @@ def medias(title, filterby, term, collections=1, page=1, **kwargs):
 def collections(page=1, **kwargs):
     page = int(page)
 
+    data = api.collections(page=page)
+    total_pages = int(data['paginator']['total_pages'])
+
     folder = plugin.Folder(title=_.COLLECTIONS)
 
-    data = api.collections(page=page)
     for row in data['data']:
         folder.add_item(
             label = row['title'],
@@ -138,7 +142,7 @@ def collections(page=1, **kwargs):
             path  = plugin.url_for(collection, id=row['id']),
         )
 
-    if int(data['paginator']['total_pages']) > page:
+    if total_pages > page:
         folder.add_item(
             label = _(_.NEXT_PAGE, next_page=page+1),
             path  = plugin.url_for(collections, page=page+1),
@@ -174,8 +178,30 @@ def featured(**kwargs):
     return folder
 
 @plugin.route()
-def search(**kwargs):
-    folder = plugin.Folder(title=_.SEARCH)
+def search(query=None, page=1, **kwargs):
+    page = int(page)
+
+    if not query:
+        query = gui.input(_.SEARCH, default=userdata.get('search', '')).strip()
+        if not query:
+            return
+        userdata.set('search', query)
+
+    data = api.medias('keyword', query, collections=True, page=page)
+    total_pages = int(data['paginator']['total_pages'])
+
+    folder = plugin.Folder(title=_(_.SEARCH_FOR, query=query, page=page, total_pages=total_pages))
+
+    for row in data['data']:
+        item = _process_media(row)
+        folder.add_items([item])
+
+    if total_pages > page:
+        folder.add_item(
+            label = _(_.NEXT_PAGE, next_page=page+1),
+            path  = plugin.url_for(search, query=query, page=page+1),
+        )
+
     return folder
 
 @plugin.route()
