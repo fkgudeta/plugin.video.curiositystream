@@ -14,17 +14,140 @@ def before_dispatch():
 
 @plugin.route('')
 def index(**kwargs):
-    folder = plugin.Folder(cacheToDisc=False)
+    folder = plugin.Folder()
+
+    folder.add_item(label=_.CATEGORIES, path=plugin.url_for(categories))
+    folder.add_item(label=_.COLLECTIONS, path=plugin.url_for(collections))
+    folder.add_item(label=_.RECOMMENDED, path=plugin.url_for(recommended))
+    folder.add_item(label=_.SEARCH, path=plugin.url_for(search))
 
     if not api.logged_in:
-        folder.add_item(label=_(_.LOGIN, _bold=True),  path=plugin.url_for(login))
+        folder.add_item(label=_(_.LOGIN, _bold=True), path=plugin.url_for(login), _position=0)
     else:
-        folder.add_item(label='TEST', path=plugin.url_for(play, media_id=1879), playable=True)
-
+        folder.add_item(label=_.WATCHLIST, path=plugin.url_for(watchlist))
+        folder.add_item(label=_.WATCHING, path=plugin.url_for(watching))
+        folder.add_item(label=_.HISTORY, path=plugin.url_for(history))
         folder.add_item(label=_.LOGOUT, path=plugin.url_for(logout))
 
     folder.add_item(label=_.SETTINGS, path=plugin.url_for(plugin.ROUTE_SETTINGS))
 
+    return folder
+
+def _process_categories(rows):
+    items = []
+
+    for row in rows:
+        subcategories = row.get('subcategories', [])
+
+        if subcategories:
+            path = plugin.url_for(categories, id=row['id'])
+        else:
+            path = plugin.url_for(media, title=row['label'], filter='category', term=row['name'])
+
+        item = plugin.Item(
+            label = row['label'],
+            art   = {'thumb': row['image_url'], 'fanart': row['background_url']},
+            path  = path,
+        )
+
+        items.append(item)
+
+    return items
+
+def _get_category(rows, id):
+    def _search(rows):
+        for row in rows:
+            if str(row['id']) == str(id):
+                return row
+            else:
+                row = _search(row.get('subcategories', []))
+                if row:
+                    return row
+
+        return None
+
+    return _search(rows)
+
+def _process_media(rows):
+    items = []
+
+    for row in rows:
+        item = plugin.Item(
+            label = row['title'],
+            info  = {'plot': row['description'], 'duration': row['duration']},
+            art   = {'thumb': row['image_medium']},
+            path  = plugin.url_for(play, media_id=row['id']),
+            playable = True,
+        )
+
+        items.append(item)
+
+    return items
+
+@plugin.route()
+def categories(id=None, **kwargs):
+    folder = plugin.Folder(title=_.CATEGORIES)
+
+    rows = api.categories()
+    if id:
+        row = _get_category(rows, id)
+        if not row:
+            raise #TODO language error
+
+        folder.title = row['label']
+        rows = row.get('subcategories', [])
+
+    items = _process_categories(rows)
+    folder.add_items(items)
+
+    return folder
+
+@plugin.route()
+def media(title, filter, term, page=1, **kwargs):
+    page = int(page)
+
+    folder = plugin.Folder(title=title)
+
+    data = api.media(filter, term, page=page)
+    items = _process_media(data['data'])
+    folder.add_items(items)
+
+    if int(data['paginator']['total_pages']) > page:
+        folder.add_item(
+            label = 'Next Page', #TODO language me!
+            path  = plugin.url_for(media, title=title, filter=filter, term=term, page=page+1)
+        )
+
+    return folder
+
+@plugin.route()
+def collections(**kwargs):
+    folder = plugin.Folder(title=_.COLLECTIONS)
+    return folder
+
+@plugin.route()
+def recommended(**kwargs):
+    folder = plugin.Folder(title=_.RECOMMENDED)
+    return folder
+
+@plugin.route()
+def search(**kwargs):
+    folder = plugin.Folder(title=_.SEARCH)
+    return folder
+
+@plugin.route()
+def watchlist(**kwargs):
+    folder = plugin.Folder(title=_.WATCHLIST)
+    return folder
+
+@plugin.route()
+def watching(**kwargs):
+    folder = plugin.Folder(title=_.WATCHING)
+    return folder
+
+@plugin.route()
+def history(**kwargs):
+    folder = plugin.Folder(title=_.HISTORY)
     return folder
 
 @plugin.route()
@@ -43,10 +166,8 @@ def login(**kwargs):
     gui.refresh()
 
 @plugin.route()
-@plugin.login_required()
 def play(media_id, **kwargs):
     url = api.play(media_id)
-    print(url)
 
     return plugin.Item(
         path = url,

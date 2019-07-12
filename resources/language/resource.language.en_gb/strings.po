@@ -29,6 +29,35 @@ msgid "Failed to login.\n"
 "Server Message: {msg}"
 msgstr ""
 
+msgctxt "#30004"
+msgid "Failed to get video for media.\n"
+"Server Message: {msg}"
+msgstr ""
+
+msgctxt "#30005"
+msgid "Categories"
+msgstr ""
+
+msgctxt "#30006"
+msgid "Collections"
+msgstr ""
+
+msgctxt "#30007"
+msgid "Recommended"
+msgstr ""
+
+msgctxt "#30008"
+msgid "Watchlist"
+msgstr ""
+
+msgctxt "#30009"
+msgid "Continue Watching"
+msgstr ""
+
+msgctxt "#30010"
+msgid "My History"
+msgstr ""
+
 ##COMMON##
 
 msgctxt "#32000"

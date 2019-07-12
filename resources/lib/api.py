@@ -23,23 +23,33 @@ class API(object):
             return
 
         self._session.headers.update({'X-Auth-Token': access_token})
-        #self._session.headers.update({'x-session-token': session_token})
         self.logged_in = True
 
-    # def _eustatus(self):
-        # r = self._session.get('.')
-        # r.headers.get("x-eu-user");
-        # r.headers.get("x-session-token");
-
     def play(self, media_id):
-        params = {
-           # 'showEncodings': 'Android',
-            #'encodingsNew': 'true', #breaks playback
-        }
+        # params = {
+        #     'showEncodings': 'Android', #limits to 1080p
+        #     'encodingsNew': 'true', #breaks playback
+        # }
 
-        data = self._session.get('/v1/media/{}'.format(media_id), params=params).json()
+        data = self._session.get('/v1/media/{}'.format(media_id)).json()
+        if 'error' in data:
+            raise APIError(_(_.STREAM_ERRPR, msg=data['error']['message']))
 
         return data['data']['encodings'][0]['master_playlist_url']
+
+    def categories(self):
+        return self._session.get('/v1/categories').json()['data']
+
+    def media(self, filter, term, collections=True, page=1):
+        params = {
+            'filterBy': filter,
+            'term': term,
+            'collections': collections,
+            'limit': 20,
+            'page': page,
+        }
+
+        return self._session.get('/v1/media', params=params).json()
 
     def login(self, username, password):
         self.logout()
@@ -64,5 +74,4 @@ class API(object):
 
     def logout(self):
         userdata.delete('token')
-      #  userdata.delete('deviceid')
         self.new_session()

@@ -251,8 +251,16 @@ class Folder(object):
         xbmcplugin.endOfDirectory(handle, succeeded=True, updateListing=self.updateListing, cacheToDisc=self.cacheToDisc)
 
     def add_item(self, *args, **kwargs):
+        position = kwargs.pop('_position', None)
+        
         item = Item(*args, **kwargs)
-        self.items.append(item)
+        
+        if position == None:
+            self.items.append(item)
+        else:
+            print("INSERT")
+            self.items.insert(int(position), item)
+
         return item
 
     def add_items(self, items):
