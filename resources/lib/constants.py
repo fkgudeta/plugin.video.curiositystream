@@ -8,3 +8,4 @@ HEADERS = {
 API_URL = 'https://api.curiositystream.com{}'
 
 PREVIEW_LENGTH = (2*60)
+CACHE_TIME     = 60*2

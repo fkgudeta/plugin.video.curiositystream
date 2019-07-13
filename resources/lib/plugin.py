@@ -25,9 +25,9 @@ def index(**kwargs):
     if not api.logged_in:
         folder.add_item(label=_(_.LOGIN, _bold=True), path=plugin.url_for(login), _position=0)
     else:
-        folder.add_item(label=_.WATCHLIST, path=plugin.url_for(watchlist))
-        folder.add_item(label=_.WATCHING, path=plugin.url_for(watching))
-        folder.add_item(label=_.HISTORY, path=plugin.url_for(history))
+        # folder.add_item(label=_.WATCHLIST, path=plugin.url_for(watchlist))
+        # folder.add_item(label=_.WATCHING, path=plugin.url_for(watching))
+        # folder.add_item(label=_.HISTORY, path=plugin.url_for(history))
         folder.add_item(label=_.LOGOUT, path=plugin.url_for(logout))
 
     folder.add_item(label=_.SETTINGS, path=plugin.url_for(plugin.ROUTE_SETTINGS))

@@ -10,7 +10,7 @@
   <extension point="xbmc.addon.metadata">
     <description lang="en">Home of Award-Winning Documentaries.
 Subscription required.</description>
-    <!-- <reuselanguageinvoker>true</reuselanguageinvoker> -->
+    <reuselanguageinvoker>true</reuselanguageinvoker>
     <license></license>
     <language></language>
     <website>https://www.matthuisman.nz/2019/07/curiositystream-kodi-add-on.html</website>

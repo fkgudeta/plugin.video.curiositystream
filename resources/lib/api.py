@@ -6,7 +6,7 @@ from matthuisman.exceptions import Error
 from matthuisman.log import log
 from matthuisman import mem_cache
 
-from .constants import HEADERS, API_URL
+from .constants import HEADERS, API_URL, CACHE_TIME
 from .language import _
 
 class APIError(Error):
@@ -47,19 +47,19 @@ class API(object):
         userdata.set('token', data['message']['auth_token'])
         self._set_authentication()
 
-    @mem_cache.cached()
+    @mem_cache.cached(CACHE_TIME)
     def categories(self):
         return self._session.get('/v1/categories').json()['data']
 
-    @mem_cache.cached()
+    @mem_cache.cached(CACHE_TIME)
     def series(self, id):
         return self._session.get('/v2/series/{}'.format(id)).json()['data']
 
-    @mem_cache.cached()
+    @mem_cache.cached(CACHE_TIME)
     def featured(self):
         return self._session.get('/v2/featured').json()
 
-    @mem_cache.cached()
+    @mem_cache.cached(CACHE_TIME)
     def sections(self, id, page=1):
         params = {
             'cache': False,
@@ -70,7 +70,7 @@ class API(object):
 
         return self._session.get('/v1/sections/{}/mobile'.format(id)).json()['data']['groups']
 
-    @mem_cache.cached()
+    @mem_cache.cached(CACHE_TIME)
     def collection(self, id, flattened=False):
         params = {
             'flattened': flattened,
@@ -78,7 +78,7 @@ class API(object):
 
         return self._session.get('/v2/collections/{}'.format(id), params=params).json()['data']
 
-    @mem_cache.cached()
+    @mem_cache.cached(CACHE_TIME)
     def collections(self, flattened=False, excludeMedia=True, page=1):
         params = {
             'flattened': flattened,
