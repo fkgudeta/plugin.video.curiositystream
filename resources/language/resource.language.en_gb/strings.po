@@ -70,6 +70,10 @@ msgctxt "#30013"
 msgid "Child Friendly Mode"
 msgstr ""
 
+msgctxt "#30014"
+msgid "Enable Subtitles (when available)"
+msgstr ""
+
 ##COMMON##
 
 msgctxt "#32000"

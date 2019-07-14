@@ -276,6 +276,9 @@ def play(id, **kwargs):
     data = api.media(id)
     item = _process_media(data)
 
+    if settings.getBool('subtitles', False):
+        item.subtitles = api.get_subtitle(data.get('closed_captions', []))
+
     item.path = data['encodings'][0]['master_playlist_url']
     item.inputstream = inputstream.HLS()
 

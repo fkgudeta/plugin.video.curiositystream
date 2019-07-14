@@ -14,5 +14,6 @@ class Language(BaseLanguage):
     NEXT_PAGE            = 30011
     CATEGORY_NOT_FOUND   = 30012
     CHILD_FRIENDLY       = 30013
+    SUBTITLES            = 30014
 
 _ = Language()

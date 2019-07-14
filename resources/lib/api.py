@@ -1,10 +1,16 @@
 import hashlib
+import os
+import codecs
+
+import xbmc
 
 from matthuisman import userdata, settings
 from matthuisman.session import Session
 from matthuisman.exceptions import Error
 from matthuisman.log import log
 from matthuisman import mem_cache
+
+from pycaption import detect_format, SRTWriter
 
 from .constants import HEADERS, API_URL, CACHE_TIME
 from .language import _
@@ -99,6 +105,26 @@ class API(object):
         }
 
         return self._session.get('/v1/media', params=params).json()
+
+    def get_subtitle(self, rows):
+        subtitles = []
+
+        for idx, row in enumerate(rows):
+            try:
+                r      = self._session.get(row['file'])
+                reader = detect_format(r.text)
+                srt    = SRTWriter().write(reader().read(r.text))
+            except:
+                log.debug('Failed to parse subtitle: {}'.format(row['file']))
+            else:
+                srtfile = xbmc.translatePath('special://temp/curiosity{}.{}.srt'.format(idx, row['code'])).decode('utf-8')
+
+                with codecs.open(srtfile, "w", "utf-8") as f:
+                    f.write(srt)
+
+                subtitles.append(srtfile)
+
+        return subtitles
 
     def media(self, id):
         # params = {
