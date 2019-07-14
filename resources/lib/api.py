@@ -106,7 +106,7 @@ class API(object):
 
         return self._session.get('/v1/media', params=params).json()
 
-    def get_subtitle(self, captions):
+    def get_subtitles(self, captions):
         subtitles = []
 
         for idx, caption in enumerate(captions):
