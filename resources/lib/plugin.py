@@ -276,7 +276,7 @@ def play(id, **kwargs):
     data = api.media(id)
     item = _process_media(data)
 
-    if settings.getBool('subtitles', False):
+    if settings.getBool('subtitles', True):
         item.subtitles = api.get_subtitle(data.get('closed_captions', []))
 
     item.path = data['encodings'][0]['master_playlist_url']
