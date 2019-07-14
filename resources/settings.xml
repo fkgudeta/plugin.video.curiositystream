@@ -2,7 +2,7 @@
 <settings>    
     <category label="32034">
         <setting label="30013" type="bool" id="child_friendly" default="false"/>
-        <setting label="30013" type="bool" id="subtitles" default="true"/>
+        <setting label="30014" type="bool" id="subtitles" default="true"/>
     </category>
 
     <category label="32035">

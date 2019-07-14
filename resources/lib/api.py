@@ -106,18 +106,18 @@ class API(object):
 
         return self._session.get('/v1/media', params=params).json()
 
-    def get_subtitle(self, rows):
+    def get_subtitle(self, captions):
         subtitles = []
 
-        for idx, row in enumerate(rows):
+        for idx, caption in enumerate(captions):
             try:
-                r      = self._session.get(row['file'])
+                r      = self._session.get(caption['file'])
                 reader = detect_format(r.text)
                 srt    = SRTWriter().write(reader().read(r.text))
             except:
-                log.debug('Failed to parse subtitle: {}'.format(row['file']))
+                log.debug('Failed to parse subtitle: {}'.format(caption['file']))
             else:
-                srtfile = xbmc.translatePath('special://temp/curiosity{}.{}.srt'.format(idx, row['code'])).decode('utf-8')
+                srtfile = xbmc.translatePath('special://temp/curiosity{}.{}.srt'.format(idx, caption['code'])).decode('utf-8')
 
                 with codecs.open(srtfile, "w", "utf-8") as f:
                     f.write(srt)
