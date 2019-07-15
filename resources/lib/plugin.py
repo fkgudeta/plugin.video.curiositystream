@@ -25,9 +25,8 @@ def index(**kwargs):
     if not api.logged_in:
         folder.add_item(label=_(_.LOGIN, _bold=True), path=plugin.url_for(login), _position=0)
     else:
-        # folder.add_item(label=_.WATCHLIST, path=plugin.url_for(watchlist))
-        # folder.add_item(label=_.WATCHING, path=plugin.url_for(watching))
-        # folder.add_item(label=_.HISTORY, path=plugin.url_for(history))
+        folder.add_item(label=_.WATCHLIST, path=plugin.url_for(watchlist))
+        folder.add_item(label=_.WATCHING, path=plugin.url_for(watching))
         folder.add_item(label=_.LOGOUT, path=plugin.url_for(logout))
 
     folder.add_item(label=_.SETTINGS, path=plugin.url_for(plugin.ROUTE_SETTINGS))
@@ -51,6 +50,17 @@ def _process_media(row):
     is_series      = row.get('is_numbered_series', False)
     duration       = row.get('duration', 0) if plugin.logged_in or is_free else PREVIEW_LENGTH
 
+    context = []
+
+    if plugin.logged_in and not is_collection:
+        user_media   = row.get('user_media') or {}
+        in_watchlist = user_media.get('is_bookmarked', False)
+
+        if in_watchlist:
+            context.append((_.REMOVE_WATCHLIST, "XBMC.RunPlugin({})".format(plugin.url_for(remove_watchlist, id=row['id'], title=row['title']))))
+        else:
+            context.append((_.ADD_WATCHLIST, "XBMC.RunPlugin({})".format(plugin.url_for(add_watchlist, id=row['id'], title=row['title']))))
+
     if is_collection:
         path = plugin.url_for(series, id=row['id'])
     else:
@@ -61,6 +71,7 @@ def _process_media(row):
         info  = {'plot': row['description'], 'duration': duration, 'year': row.get('year_produced')},
         art   = {'thumb': _image(row, 'image_medium')},
         path  = path,
+        context = context,
         playable = not is_collection,
     )
 
@@ -242,18 +253,56 @@ def search(query=None, page=1, **kwargs):
     return folder
 
 @plugin.route()
-def watchlist(**kwargs):
+def watchlist(page=1, **kwargs):
+    page = int(page)
+
     folder = plugin.Folder(title=_.WATCHLIST)
+    data   = api.filter_media('bookmarked', page=page)
+    total_pages = int(data['paginator']['total_pages'])
+
+    for row in data['data']:
+        item = _process_media(row)
+        folder.add_items([item])
+
+    if total_pages > page:
+        folder.add_item(
+            label = _(_.NEXT_PAGE, next_page=page+1),
+            path  = plugin.url_for(watchlist, page=page+1),
+        )
+
     return folder
 
+
 @plugin.route()
-def watching(**kwargs):
+def add_watchlist(id, title, **kwargs):
+    api.set_user_media(id, is_bookmarked='true')
+    gui.notification(title, heading=_.WATCHLIST_ADDED)
+    gui.refresh()
+
+@plugin.route()
+def remove_watchlist(id, title, **kwargs):
+    api.set_user_media(id, is_bookmarked='false')
+    gui.notification(title, heading=_.WATCHLIST_REMOVED)
+    gui.refresh()
+
+@plugin.route()
+def watching(page=1, **kwargs):
+    page = int(page)
+
     folder = plugin.Folder(title=_.WATCHING)
-    return folder
+    data   = api.filter_media('watching', page=page)
+    total_pages = int(data['paginator']['total_pages'])
 
-@plugin.route()
-def history(**kwargs):
-    folder = plugin.Folder(title=_.HISTORY)
+    for row in data['data']:
+        item = _process_media(row)
+        folder.add_items([item])
+
+    if total_pages > page:
+        folder.add_item(
+            label = _(_.NEXT_PAGE, next_page=page+1),
+            path  = plugin.url_for(watchlist, page=page+1),
+        )
+
     return folder
 
 @plugin.route()

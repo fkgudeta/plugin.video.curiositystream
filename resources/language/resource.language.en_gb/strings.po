@@ -54,9 +54,7 @@ msgctxt "#30009"
 msgid "Continue Watching"
 msgstr ""
 
-msgctxt "#30010"
-msgid "My History"
-msgstr ""
+
 
 msgctxt "#30011"
 msgid "Next Page ({next_page})"
@@ -72,6 +70,22 @@ msgstr ""
 
 msgctxt "#30014"
 msgid "Enable Subtitles (when available)"
+msgstr ""
+
+msgctxt "#30015"
+msgid "Add to Watchlist"
+msgstr ""
+
+msgctxt "#30016"
+msgid "Remove from Watchlist"
+msgstr ""
+
+msgctxt "#30017"
+msgid "Watchlist Added"
+msgstr ""
+
+msgctxt "#30018"
+msgid "Watchlist Removed"
 msgstr ""
 
 ##COMMON##

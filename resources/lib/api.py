@@ -57,7 +57,6 @@ class API(object):
     def categories(self):
         return self._session.get('/v1/categories').json()['data']
 
-    @mem_cache.cached(CACHE_TIME)
     def series(self, id):
         return self._session.get('/v2/series/{}'.format(id)).json()['data']
 
@@ -65,7 +64,6 @@ class API(object):
     def featured(self):
         return self._session.get('/v2/featured').json()
 
-    @mem_cache.cached(CACHE_TIME)
     def sections(self, id, page=1):
         params = {
             'cache': False,
@@ -76,7 +74,6 @@ class API(object):
 
         return self._session.get('/v1/sections/{}/mobile'.format(id)).json()['data']['groups']
 
-    @mem_cache.cached(CACHE_TIME)
     def collection(self, id, flattened=False):
         params = {
             'flattened': flattened,
@@ -95,16 +92,29 @@ class API(object):
 
         return self._session.get('/v2/collections', params=params).json()
 
-    def filter_media(self, filterby, term, collections=True, page=1):
+    def filter_media(self, filterby, term=None, collections=True, page=1):
         params = {
             'filterBy': filterby,
-            'term': term,
             'collections': collections,
             'limit': 20,
             'page': page,
         }
 
+        if term:
+            params['term'] = term
+
         return self._session.get('/v1/media', params=params).json()
+
+    def set_user_media(self, id, **kwargs):
+        params = {
+            'media_id': id,
+            #'is_bookmarked': 'true' if value else 'false',
+        }
+
+        params.update(kwargs)
+
+        data = self._session.post('/v1/user_media', params=params, json={}).json()
+        print(data)
 
     def get_subtitles(self, captions):
         subtitles = []
