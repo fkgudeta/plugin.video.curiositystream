@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.curiositystream" name="CuriosityStream" provider-name="MattHuisman.nz" version="0.0.2">
+<addon id="plugin.video.curiositystream" name="CuriosityStream" provider-name="MattHuisman.nz" version="0.0.3">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.requests"/>
@@ -14,6 +14,6 @@ Subscription required.</description>
     <license></license>
     <language></language>
     <website>https://www.matthuisman.nz/2019/07/curiositystream-kodi-add-on.html</website>
-    <news>Add support for Subtitles</news>
+    <news>Add Watchlist and Continue Watching</news>
   </extension>
 </addon>
