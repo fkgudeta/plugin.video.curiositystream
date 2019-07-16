@@ -1,10 +1,8 @@
 HEADERS = {
     'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 8.1.0; MI 5 Build/OPM7.181205.001)', 
     'x-api-version': 'v3',
-    'x-platform': 'android',
-    'x-client-version': 'v2.8.0-57-g17f658392',
-    'X-Platform': 'kodi',
-    'x-Client-Version': 'plugin.video.curiositystream',
+    'x-platform': 'kodi',
+    'x-client-version': 'matthuisman/plugin.video.curiositystream',
 }
 
 API_URL = 'https://api.curiositystream.com{}'
