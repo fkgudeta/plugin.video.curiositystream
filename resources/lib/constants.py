@@ -3,6 +3,8 @@ HEADERS = {
     'x-api-version': 'v3',
     'x-platform': 'android',
     'x-client-version': 'v2.8.0-57-g17f658392',
+    'X-Platform': 'kodi',
+    'x-Client-Version': 'plugin.video.curiositystream',
 }
 
 API_URL = 'https://api.curiositystream.com{}'
